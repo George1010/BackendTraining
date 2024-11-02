@@ -35,8 +35,7 @@ public class PostService {
     public Post deletePost(UUID id) throws Exception {
         Post post = postRepository.findById(id);
         if (post != null) {
-            post.setDeleted(true);
-            postRepository.save(post);
+            postRepository.delete(post);
             return post;
         } else {
             throw new Exception("Post not found");
@@ -45,7 +44,7 @@ public class PostService {
 
     public Post getPost(UUID id) throws Exception {
         Post post =  postRepository.findById(id);
-        if (post != null && !post.isDeleted()) {
+        if (post != null) {
             return post;
         } else {
             throw new Exception("Post not found");
@@ -59,7 +58,7 @@ public class PostService {
         if (cursor == null) {
             posts = postRepository.findTopNPosts(PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt")));
         } else {
-            posts = postRepository.findByIdLessThanAndDeletedFalse(UUID.fromString(cursor), PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt")));
+            posts = postRepository.findByIdLessThan(UUID.fromString(cursor), PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt")));
         }
 
         String nextCursor = posts.isEmpty() ? null : String.valueOf(posts.get(posts.size() - 1).getId());
