@@ -18,8 +18,8 @@ import java.util.UUID;
 public interface PostRepository extends JpaRepository<Post, String> {
     Post findById(UUID id);
 
-    List<Post> findByIdLessThanAndDeletedFalse(UUID cursor, Pageable pageable);
+    List<Post> findByIdLessThan(UUID cursor, Pageable pageable);
 
-    @Query("SELECT p FROM Post p WHERE p.deleted = false ORDER BY p.createdAt DESC")
+    @Query("SELECT p FROM Post p ORDER BY p.createdAt DESC")
     List<Post> findTopNPosts(PageRequest createdAt);
 }
