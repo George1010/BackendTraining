@@ -39,7 +39,7 @@ public class PostService {
 
     public Post updatePost(Post post) {
         Post existingPost = postRepository.findById(post.getId());
-        if (existingPost != null && !existingPost.isDeleted()) {
+        if (existingPost != null) {
             validatePost(post);
             if (post.getTitle() != null) {
                 existingPost.setTitle(post.getTitle());

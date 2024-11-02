@@ -12,7 +12,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.backend_training.app.exceptions.InternalServerException;
 import com.backend_training.app.exceptions.RateLimitExceededException;
 
 import java.time.Duration;
@@ -32,17 +31,17 @@ public class RateLimitingAspect {
     private final Map<String, Bucket> bucketCache = new ConcurrentHashMap<>();
 
     @Around("@annotation(rateLimit)")
-    public Object rateLimit(ProceedingJoinPoint pjp, RateLimit rateLimit) {
+    public Object rateLimit(ProceedingJoinPoint pjp, RateLimit rateLimit) throws Throwable {
         String clientIp = getClientIpAddress();
         String cacheKey = clientIp + ":" + pjp.getSignature().toShortString();
         Bucket bucket = bucketCache.computeIfAbsent(cacheKey, key -> createBucket(rateLimit.capacity(), rateLimit.refillTokens(), rateLimit.duration()));
         
         if (bucket.tryConsume(1)) {
-            try {
-                return pjp.proceed();
-            } catch (Throwable e) {
-                throw new InternalServerException("Error occurred while processing request: " + pjp.getSignature(), e);
-            }
+                try {
+                    return pjp.proceed();
+                } catch (Throwable e) {
+                   throw e;
+                }
         } else {
             int retryAfter = calculateRetryAfter(bucket);
             response.setHeader("Retry-After", String.valueOf(retryAfter));
