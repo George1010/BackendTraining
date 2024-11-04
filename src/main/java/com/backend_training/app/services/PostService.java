@@ -1,10 +1,10 @@
 package com.backend_training.app.services;
 
 import com.backend_training.app.dto.PostResponse;
-import com.backend_training.app.exceptions.InvalidPostException;
 import com.backend_training.app.exceptions.ResourceNotFoundException;
 import com.backend_training.app.models.Post;
 import com.backend_training.app.repositories.PostRepository;
+import com.backend_training.app.utils.PostValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -19,20 +19,12 @@ public class PostService {
     @Autowired
     private PostRepository postRepository;
 
-    private void validatePost(Post post) {
-        if (post.getTitle() == null || post.getTitle().length() < 3 || post.getTitle().length() > 100) {
-            throw new InvalidPostException("Title must be between 3 and 100 characters");
-        }
-        if (post.getContent() == null || post.getContent().length() < 10 || post.getContent().length() > 500) {
-            throw new InvalidPostException("Content must have at least 10 characters");
-        }
-        if (post.getUserID() == null || post.getUserID().isEmpty()) {
-            throw new InvalidPostException("User ID cannot be null or empty");
-        }
-    }
+    @Autowired
+    private PostValidator postValidator;
+
 
     public Post createPost(Post post) {
-        validatePost(post);
+        postValidator.validatePost(post, false);
         postRepository.save(post);
         return post;
     }
@@ -40,13 +32,9 @@ public class PostService {
     public Post updatePost(Post post) {
         Post existingPost = postRepository.findById(post.getId());
         if (existingPost != null) {
-            validatePost(post);
-            if (post.getTitle() != null) {
-                existingPost.setTitle(post.getTitle());
-            }
-            if (post.getContent() != null) {
-                existingPost.setContent(post.getContent());
-            }
+            postValidator.validatePost(post, true);
+            existingPost.setTitle(post.getTitle());
+            existingPost.setContent(post.getContent());
             postRepository.save(existingPost);
             return existingPost;
         } else {

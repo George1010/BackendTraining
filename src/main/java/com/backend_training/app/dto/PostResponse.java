@@ -11,10 +11,16 @@ import java.util.List;
 public class PostResponse {
     private List<Post> posts;
     private String nextCursor;
-    private String errorMessage;
+    private String message;
+    private List<ErrorDetail> errors;
 
     public PostResponse(List<Post> posts, String nextCursor) {
         this.posts = posts;
         this.nextCursor = nextCursor;
+    }
+
+    public PostResponse(String message, List<ErrorDetail> errors) {
+        this.message = message;
+        this.errors = errors;
     }
 }

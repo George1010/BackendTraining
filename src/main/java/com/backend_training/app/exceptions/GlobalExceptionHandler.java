@@ -1,43 +1,49 @@
 package com.backend_training.app.exceptions;
 
-import java.util.Collections;
-import java.util.Map;
-
+import com.backend_training.app.dto.ErrorDetail;
+import com.backend_training.app.dto.PostResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleResourceNotFoundException(ResourceNotFoundException ex) {
-        return createErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
+    @ExceptionHandler(InvalidPostException.class)
+    public ResponseEntity<PostResponse> handleInvalidPostException(InvalidPostException ex) {
+        List<ErrorDetail> errorDetails = ex.getErrorDetails();
+        PostResponse errorResponse = new PostResponse("Invalid request data. Please review the request and try again.", errorDetails);
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(InvalidPostException.class)
-    public ResponseEntity<Map<String, String>> handleInvalidPostException(InvalidPostException ex) {
-        return createErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<PostResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        List<ErrorDetail> errorDetails = new ArrayList<>();
+        errorDetails.add(new ErrorDetail(null, ex.getMessage(), "not_found"));
+
+        PostResponse errorResponse = new PostResponse("Resource not found.", errorDetails);
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(RateLimitExceededException.class)
-    public ResponseEntity<Map<String, String>> handleRateLimitExceededException(RateLimitExceededException ex) {
-        return createErrorResponse(ex.getMessage(), HttpStatus.TOO_MANY_REQUESTS);
+    public ResponseEntity<PostResponse> handleRateLimitExceededException(RateLimitExceededException ex) {
+        List<ErrorDetail> errorDetails = new ArrayList<>();
+        errorDetails.add(new ErrorDetail(null, ex.getMessage(), "too_many_requests"));
+
+        PostResponse errorResponse = new PostResponse("Rate limit exceeded.", errorDetails);
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(InternalServerException.class)
-    public ResponseEntity<Map<String, String>> handleInternalServerException(InternalServerException ex) {
-        return createErrorResponse("An unexpected error occurred: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    @ExceptionHandler({Exception.class, InternalServerException.class})
+    public ResponseEntity<PostResponse> handleGenericException(Exception ex) {
+        List<ErrorDetail> errorDetails = new ArrayList<>();
+        errorDetails.add(new ErrorDetail(null, "An unexpected error occurred", "internal_error"));
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleGenericException(Exception ex) {
-        return createErrorResponse("An unexpected error occurred: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    private ResponseEntity<Map<String, String>> createErrorResponse(String message, HttpStatus status) {
-        Map<String, String> errorBody = Collections.singletonMap("error", message);
-        return new ResponseEntity<>(errorBody, status);
+        PostResponse errorResponse = new PostResponse("Internal Server Error", errorDetails);
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
