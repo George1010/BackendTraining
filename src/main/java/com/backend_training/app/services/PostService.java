@@ -65,6 +65,7 @@ public class PostService {
     public PostResponse fetchPosts(String cursor, int limit) {
 
         List<Post> posts;
+        limit = Math.min(limit, 20);
 
         if (cursor == null) {
             posts = postRepository.findTopNPosts(PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdAt")));
