@@ -31,35 +31,34 @@ public class PostService {
 
     public Post updatePost(Post post) {
         Post existingPost = postRepository.findById(post.getId());
-        if (existingPost != null) {
-            postValidator.validatePost(post, true);
-            existingPost.setTitle(post.getTitle());
-            existingPost.setContent(post.getContent());
-            postRepository.save(existingPost);
-            return existingPost;
-        } else {
+        if (existingPost == null) {
             throw new ResourceNotFoundException("Post not found");
         }
+
+        postValidator.validatePost(post, true);
+        existingPost.setTitle(post.getTitle());
+        existingPost.setContent(post.getContent());
+        postRepository.save(existingPost);
+        return existingPost;
     }
 
     public Post deletePost(UUID id) {
         Post post = postRepository.findById(id);
-        if (post != null) {
-            postRepository.delete(post);
-            return post;
-        } else {
+        if (post == null) {
             throw new ResourceNotFoundException("Post not found");
         }
+
+        postRepository.delete(post);
+        return post;
     }
 
 
     public Post getPost(UUID id) {
         Post post =  postRepository.findById(id);
-        if (post != null) {
-            return post;
-        } else {
+        if (post == null) {
             throw new ResourceNotFoundException("Post not found");
         }
+        return post;
     }
 
     public PostResponse fetchPosts(String cursor, int limit) {
