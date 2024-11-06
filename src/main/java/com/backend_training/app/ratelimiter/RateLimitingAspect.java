@@ -10,9 +10,9 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+
+import com.backend_training.app.exceptions.RateLimitExceededException;
 
 import java.time.Duration;
 import java.util.Map;
@@ -37,11 +37,15 @@ public class RateLimitingAspect {
         Bucket bucket = bucketCache.computeIfAbsent(cacheKey, key -> createBucket(rateLimit.capacity(), rateLimit.refillTokens(), rateLimit.duration()));
         
         if (bucket.tryConsume(1)) {
-            return pjp.proceed();
+                try {
+                    return pjp.proceed();
+                } catch (Throwable e) {
+                   throw e;
+                }
         } else {
             int retryAfter = calculateRetryAfter(bucket);
             response.setHeader("Retry-After", String.valueOf(retryAfter));
-            return new ResponseEntity<>("Too many requests. Please try again after " + retryAfter + " seconds.", HttpStatus.TOO_MANY_REQUESTS);
+            throw new RateLimitExceededException("Too many requests. Please try again after " + retryAfter + " seconds.");
         }
     }
 
