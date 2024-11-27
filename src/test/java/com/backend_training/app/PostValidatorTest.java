@@ -41,7 +41,7 @@ class PostValidatorTest {
         when(postRepository.findByTitleAndUserID(post.getTitle(), post.getUserID())).thenReturn(Optional.empty());
 
         //Act & Assert
-        assertDoesNotThrow(() -> postValidator.validatePost(post, false));
+        assertDoesNotThrow(() -> postValidator.validatePost(post, "user123", false));
     }
 
     @Test
@@ -50,7 +50,7 @@ class PostValidatorTest {
         post.setTitle(null);
 
         //Act & Assert
-        InvalidPostException exception = assertThrows(InvalidPostException.class, () -> postValidator.validatePost(post, false));
+        InvalidPostException exception = assertThrows(InvalidPostException.class, () -> postValidator.validatePost(post, "user123", false));
         assertTrue(exception.getErrorDetails().stream().anyMatch(e -> e.getField().equals("title") && e.getCode().equals("missing_field")));
     }
 
@@ -60,7 +60,7 @@ class PostValidatorTest {
         post.setTitle("Hi");
 
         //Act & Assert
-        InvalidPostException exception = assertThrows(InvalidPostException.class, () -> postValidator.validatePost(post, false));
+        InvalidPostException exception = assertThrows(InvalidPostException.class, () -> postValidator.validatePost(post, "user123", false));
         assertTrue(exception.getErrorDetails().stream().anyMatch(e -> e.getField().equals("title") && e.getMessage().equals("Title must be at least 3 characters long")));
     }
 
@@ -70,7 +70,7 @@ class PostValidatorTest {
         post.setTitle("A".repeat(101));
 
         //Act & Assert
-        InvalidPostException exception = assertThrows(InvalidPostException.class, () -> postValidator.validatePost(post, false));
+        InvalidPostException exception = assertThrows(InvalidPostException.class, () -> postValidator.validatePost(post, "user123", false));
         assertTrue(exception.getErrorDetails().stream().anyMatch(e -> e.getField().equals("title") && e.getMessage().equals("Title cannot exceed 100 characters")));
     }
 
@@ -80,7 +80,7 @@ class PostValidatorTest {
         post.setContent(null);
 
         //Act & Assert
-        InvalidPostException exception = assertThrows(InvalidPostException.class, () -> postValidator.validatePost(post, false));
+        InvalidPostException exception = assertThrows(InvalidPostException.class, () -> postValidator.validatePost(post, "user123", false));
         assertTrue(exception.getErrorDetails().stream().anyMatch(e -> e.getField().equals("content") && e.getCode().equals("missing_field")));
     }
 
@@ -90,7 +90,7 @@ class PostValidatorTest {
         post.setContent("Hi");
 
         //Act & Assert
-        InvalidPostException exception = assertThrows(InvalidPostException.class, () -> postValidator.validatePost(post, false));
+        InvalidPostException exception = assertThrows(InvalidPostException.class, () -> postValidator.validatePost(post, "user123", false));
         assertTrue(exception.getErrorDetails().stream().anyMatch(e -> e.getField().equals("content") && e.getMessage().equals("Content must be at least 10 characters long")));
     }
 
@@ -100,7 +100,7 @@ class PostValidatorTest {
         post.setContent("A".repeat(501));
 
         //Act & Assert
-        InvalidPostException exception = assertThrows(InvalidPostException.class, () -> postValidator.validatePost(post, false));
+        InvalidPostException exception = assertThrows(InvalidPostException.class, () -> postValidator.validatePost(post, "user123", false));
         assertTrue(exception.getErrorDetails().stream().anyMatch(e -> e.getField().equals("content") && e.getMessage().equals("Content cannot exceed 500 characters")));
     }
 
@@ -110,18 +110,18 @@ class PostValidatorTest {
         post.setUserID(null);
 
         //Act & Assert
-        InvalidPostException exception = assertThrows(InvalidPostException.class, () -> postValidator.validatePost(post, false));
-        assertTrue(exception.getErrorDetails().stream().anyMatch(e -> e.getField().equals("userID") && e.getCode().equals("missing_field")));
+        InvalidPostException exception = assertThrows(InvalidPostException.class, () -> postValidator.validatePost(post, null, false));
+        assertTrue(exception.getErrorDetails().stream().anyMatch(e -> e.getCode().equals("missing_user_id")));
     }
 
     @Test
-    void validatePost_emptyUserID_shouldThrowInvalidPostException() {
+    void validatePost_DifferentUserID_shouldThrowInvalidPostException() {
         //Arrange
-        post.setUserID("");
+        post.setUserID("test");
 
         //Act & Assert
-        InvalidPostException exception = assertThrows(InvalidPostException.class, () -> postValidator.validatePost(post, false));
-        assertTrue(exception.getErrorDetails().stream().anyMatch(e -> e.getField().equals("userID") && e.getCode().equals("missing_field")));
+        InvalidPostException exception = assertThrows(InvalidPostException.class, () -> postValidator.validatePost(post, "user123", true));
+        assertTrue(exception.getErrorDetails().stream().anyMatch(e -> e.getCode().equals("invalid_user_id")));
     }
 
     @Test
@@ -130,7 +130,7 @@ class PostValidatorTest {
         when(postRepository.findByTitleAndUserID(post.getTitle(), post.getUserID())).thenReturn(Optional.of(post));
 
         //Act & Assert
-        InvalidPostException exception = assertThrows(InvalidPostException.class, () -> postValidator.validatePost(post, false));
+        InvalidPostException exception = assertThrows(InvalidPostException.class, () -> postValidator.validatePost(post, "user123", false));
         assertTrue(exception.getErrorDetails().stream().anyMatch(e -> e.getCode().equals("duplicate_post")));
     }
 
@@ -140,7 +140,7 @@ class PostValidatorTest {
         when(postRepository.findByTitleAndUserID(post.getTitle(), post.getUserID())).thenReturn(Optional.of(post));
 
         //Act & Assert
-        assertDoesNotThrow(() -> postValidator.validatePost(post, true));
+        assertDoesNotThrow(() -> postValidator.validatePost(post, "user123", true));
     }
 
     @Test
@@ -151,7 +151,7 @@ class PostValidatorTest {
         when(postRepository.findByTitleAndUserID(post.getTitle(), post.getUserID())).thenReturn(Optional.of(existingPost));
 
         //Act & Assert
-        InvalidPostException exception = assertThrows(InvalidPostException.class, () -> postValidator.validatePost(post, true));
+        InvalidPostException exception = assertThrows(InvalidPostException.class, () -> postValidator.validatePost(post, "user123", true));
         assertTrue(exception.getErrorDetails().stream().anyMatch(e -> e.getCode().equals("duplicate_post")));
     }
 }

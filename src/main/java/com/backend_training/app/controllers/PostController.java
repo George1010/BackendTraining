@@ -6,6 +6,9 @@ import com.backend_training.app.services.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.access.prepost.PreAuthorize;
 import java.util.UUID;
 
 @RestController
@@ -16,7 +19,8 @@ public class PostController {
     private PostService postService;
 
     @GetMapping
-    public ResponseEntity<?> getPosts(@RequestParam(defaultValue = "10") int limit, @RequestParam(required = false) String cursor) throws Exception {
+    public ResponseEntity<?> getPosts(@RequestParam(defaultValue = "10") int limit, 
+                                    @RequestParam(required = false) String cursor) {
         return ResponseEntity.ok(postService.fetchPosts(cursor, limit));
     }
 
@@ -27,17 +31,23 @@ public class PostController {
 
     @PostMapping
     @RateLimit(capacity = 10, refillTokens = 1, duration = 60 * 1000)
-    public ResponseEntity<?> createPost(@RequestBody Post post) {
-        return ResponseEntity.ok(postService.createPost(post));
+    public ResponseEntity<?> createPost(@AuthenticationPrincipal Jwt jwt, 
+                                      @RequestBody Post post) {
+        String userId = jwt.getSubject();
+        return ResponseEntity.ok(postService.createPost(post, userId));
     }
 
     @PutMapping
-    public ResponseEntity<?> updatePost(@RequestBody Post post) {
-        return ResponseEntity.ok(postService.updatePost(post));
+    public ResponseEntity<?> updatePost(@AuthenticationPrincipal Jwt jwt,
+                                      @RequestBody Post post) {
+        String userId = jwt.getSubject();
+        return ResponseEntity.ok(postService.updatePost(post, userId));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deletePost(@PathVariable UUID id) {
-        return ResponseEntity.ok(postService.deletePost(id));
+    public ResponseEntity<?> deletePost(@AuthenticationPrincipal Jwt jwt,
+                                      @PathVariable UUID id) {
+        String userId = jwt.getSubject();
+        return ResponseEntity.ok(postService.deletePost(id, userId));
     }
 }

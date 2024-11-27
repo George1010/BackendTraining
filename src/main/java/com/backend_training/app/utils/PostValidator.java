@@ -17,12 +17,12 @@ public class PostValidator {
     @Autowired
     private PostRepository postRepository;
 
-    public void validatePost(Post post, boolean isUpdate) {
+    public void validatePost(Post post, String userID, boolean isUpdate) {
         List<ErrorDetail> errorDetails = new ArrayList<>();
 
         validateTitle(post.getTitle(), errorDetails);
         validateContent(post.getContent(), errorDetails);
-        validateUserID(post.getUserID(), errorDetails);
+        validateUserID(post.getUserID(), userID, errorDetails);
         if (!errorDetails.isEmpty()) {
             throw new InvalidPostException(errorDetails);
         }
@@ -50,10 +50,14 @@ public class PostValidator {
         }
     }
 
-    private void validateUserID(String userID, List<ErrorDetail> errorDetails) {
-        if (userID == null || userID.isEmpty()) {
-            errorDetails.add(new ErrorDetail("userID", "User ID cannot be null or empty", "missing_field"));
-        }
+    private void validateUserID(String existingUserID, String userIdFromToken, List<ErrorDetail> errorDetails) {
+       if (existingUserID!=null && !existingUserID.equals(userIdFromToken)) {
+           errorDetails.add(new ErrorDetail(null, "Unauthorised operation", "invalid_user_id"));
+       }
+
+       if (userIdFromToken == null) {
+           errorDetails.add(new ErrorDetail(null, "Invalid access token", "missing_user_id"));
+       }
     }
 
     private void checkForDuplicatePost(Post post, boolean isUpdate) {
