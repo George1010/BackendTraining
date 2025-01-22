@@ -1,0 +1,441 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Post Management API",
+    "description": "API for managing posts in the Backend Training app",
+    "version": "v1.0"
+  },
+  "paths": {
+    "/api/v1/resources/posts": {
+      "get": {
+        "summary": "Get Posts",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "default": 10 }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Bearer authentication token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of Posts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "posts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Post"
+                      }
+                    },
+                    "nextCursor": {
+                      "type": "string",
+                      "description": "Cursor for the next page of posts"
+                    }
+                  }
+                },
+                "example": {
+                  "posts": [
+                    {
+                      "id": "6ca3f285-f9c1-4677-b56f-98b1beac611c",
+                      "title": "title",
+                      "content": "test content",
+                      "userID": "aed55f48-2f77-47ee-a31d-57911bb8d7a2",
+                      "createdAt": "2025-01-08T11:24:42.700155"
+                    }
+                  ],
+                  "nextCursor": "6ca3f285-f9c1-4677-b56f-98b1beac611c"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Bearer authentication token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post Created Successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Post" },
+                "example": {
+                  "id": "6ca3f285-f9c1-4677-b56f-98b1beac611c",
+                  "title": "title",
+                  "content": "test content",
+                  "userID": "aed55f48-2f77-47ee-a31d-57911bb8d7a2",
+                  "createdAt": "2025-01-08T11:24:42.700155"
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" }
+        }
+      },
+      "put": {
+        "summary": "Update Post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PostInput"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Bearer authentication token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post Updated Successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Post" },
+                "example": {
+                  "id": "6ca3f285-f9c1-4677-b56f-98b1beac611c",
+                  "title": "test",
+                  "content": "test content",
+                  "userID": "aed55f48-2f77-47ee-a31d-57911bb8d7a2",
+                  "createdAt": "2025-01-08T11:24:42.700155"
+                }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" }
+        }
+      }
+    },
+    "/api/v1/resources/posts/{id}": {
+      "get": {
+        "summary": "Get Post",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Bearer authentication token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Post"
+                },
+                "example": {
+                  "id": "fe9fbc81-a2b8-4ada-9088-dd5dd37c35b7",
+                  "title": "title",
+                  "content": "test content",
+                  "userID": "aed55f48-2f77-47ee-a31d-57911bb8d7a2",
+                  "createdAt": "2025-01-08T11:34:40.481644"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["message", "code"]
+                      }
+                    }
+                  },
+                  "example": {
+                    "message": "Resource not found.",
+                    "errors": [
+                      {
+                        "message": "Post not found",
+                        "code": "not_found"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Post",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Bearer authentication token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Post"
+                },
+                "example": {
+                  "id": "fe9fbc81-a2b8-4ada-9088-dd5dd37c35b7",
+                  "title": "title",
+                  "content": "test content",
+                  "userID": "aed55f48-2f77-47ee-a31d-57911bb8d7a2",
+                  "createdAt": "2025-01-08T11:34:40.481644"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Post Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["message", "code"]
+                      }
+                    }
+                  },
+                  "example": {
+                    "message": "Resource not found.",
+                    "errors": [
+                      {
+                        "message": "Post not found",
+                        "code": "not_found"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Post": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Unique identifier for the post"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the post"
+          },
+          "content": {
+            "type": "string",
+            "description": "Content of the post"
+          },
+          "userID": {
+            "type": "string",
+            "description": "Identifier of the user who created the post"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the post was created"
+          }
+        }
+      },
+      "PostInput": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 100,
+            "description": "Title of the post. Must be between 3 and 100 characters."
+          },
+          "content": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 500,
+            "description": "Content of the post. Must be between 10 and 500 characters."
+          }
+        },
+        "required": [
+          "title",
+          "content"
+        ]
+      }
+    },
+    "responses": {
+      "ValidationError": {
+        "description": "Validation Error Response",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "errors": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "field": {
+                        "type": "string",
+                        "description": "Field name that caused the error."
+                      },
+                      "message": {
+                        "type": "string",
+                        "description": "Detailed error message for the field."
+                      },
+                      "code": {
+                        "type": "string",
+                        "description": "Error code for the validation issue."
+                      }
+                    },
+                    "required": [
+                      "field",
+                      "message",
+                      "code"
+                    ]
+                  }
+                }
+              },
+              "example": {
+                "errors": [
+                  {
+                    "field": "title",
+                    "message": "Title cannot be null",
+                    "code": "missing_field"
+                  },
+                  {
+                    "field": "title",
+                    "message": "Title must be at least 3 characters long",
+                    "code": "too_short"
+                  },
+                  {
+                    "field": "title",
+                    "message": "Title cannot exceed 100 characters",
+                    "code": "too_long"
+                  },
+                  {
+                    "field": "content",
+                    "message": "Content cannot be null",
+                    "code": "missing_field"
+                  },
+                  {
+                    "field": "content",
+                    "message": "Content must be at least 10 characters long",
+                    "code": "too_short"
+                  },
+                  {
+                    "field": "content",
+                    "message": "Content cannot exceed 500 characters",
+                    "code": "too_long"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -20,7 +20,7 @@ public class SecurityConfig {
     protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests((authorizeRequests) -> authorizeRequests.requestMatchers("/auth/register", "/auth/login").permitAll()
+                .authorizeHttpRequests((authorizeRequests) -> authorizeRequests.requestMatchers("/auth/register", "/auth/login", "/api/docs/openapi", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer((oauth2ResourceServer) ->
                         oauth2ResourceServer
