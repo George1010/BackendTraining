@@ -2,6 +2,7 @@ package com.backend_training.app.services;
 
 import com.backend_training.app.dto.PostResponse;
 import com.backend_training.app.exceptions.ResourceNotFoundException;
+import com.backend_training.app.exceptions.UnauthorisedException;
 import com.backend_training.app.models.Post;
 import com.backend_training.app.repositories.PostRepository;
 import com.backend_training.app.utils.PostValidator;
@@ -23,38 +24,41 @@ public class PostService {
     private PostValidator postValidator;
 
 
-    public Post createPost(Post post) {
-        postValidator.validatePost(post, false);
+    public Post createPost(Post post, String userIdFromToken) {
+        postValidator.validatePost(post, userIdFromToken, false);
+        post.setUserID(userIdFromToken);
         postRepository.save(post);
         return post;
     }
 
-    public Post updatePost(Post post) {
+    public Post updatePost(Post post, String userIdFromToken) {
         Post existingPost = postRepository.findById(post.getId());
         if (existingPost == null) {
             throw new ResourceNotFoundException("Post not found");
         }
 
-        postValidator.validatePost(post, true);
+        postValidator.validatePost(post, userIdFromToken,  true);
         existingPost.setTitle(post.getTitle());
         existingPost.setContent(post.getContent());
         postRepository.save(existingPost);
         return existingPost;
     }
 
-    public Post deletePost(UUID id) {
+    public Post deletePost(UUID id, String userIdFromToken) {
         Post post = postRepository.findById(id);
         if (post == null) {
             throw new ResourceNotFoundException("Post not found");
         }
 
+        if (!post.getUserID().equals(userIdFromToken)) {
+            throw new UnauthorisedException("Unauthorized to delete post");
+        }
         postRepository.delete(post);
         return post;
     }
 
-
     public Post getPost(UUID id) {
-        Post post =  postRepository.findById(id);
+        Post post = postRepository.findById(id);
         if (post == null) {
             throw new ResourceNotFoundException("Post not found");
         }
@@ -62,7 +66,6 @@ public class PostService {
     }
 
     public PostResponse fetchPosts(String cursor, int limit) {
-
         List<Post> posts;
         limit = Math.min(limit, 20);
 

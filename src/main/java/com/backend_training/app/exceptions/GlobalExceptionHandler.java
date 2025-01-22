@@ -1,5 +1,6 @@
 package com.backend_training.app.exceptions;
 
+import com.auth0.exception.Auth0Exception;
 import com.backend_training.app.dto.ErrorDetail;
 import com.backend_training.app.dto.PostResponse;
 import org.springframework.http.HttpStatus;
@@ -45,5 +46,23 @@ public class GlobalExceptionHandler {
 
         PostResponse errorResponse = new PostResponse("Internal Server Error", errorDetails);
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(Auth0Exception.class)
+    public ResponseEntity<PostResponse> handleAuth0Exception(Auth0Exception ex) {
+        List<ErrorDetail> errorDetails = new ArrayList<>();
+        errorDetails.add(new ErrorDetail(null, ex.getMessage(), "auth0_error"));
+
+        PostResponse errorResponse = new PostResponse("Auth0 Error", errorDetails);
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(UnauthorisedException.class)
+    public ResponseEntity<PostResponse> handleUnauthorisedException(UnauthorisedException ex) {
+        List<ErrorDetail> errorDetails = new ArrayList<>();
+        errorDetails.add(new ErrorDetail(null, ex.getMessage(), "unauthorised"));
+
+        PostResponse errorResponse = new PostResponse("Unauthorised", errorDetails);
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 }

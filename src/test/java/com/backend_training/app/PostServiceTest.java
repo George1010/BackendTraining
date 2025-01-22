@@ -47,11 +47,11 @@ class PostServiceTest {
         when(postRepository.save(post)).thenReturn(post);
 
         //Act
-        Post createdPost = postService.createPost(post);
+        Post createdPost = postService.createPost(post, "user123");
 
         //Assert
         assertEquals(post, createdPost);
-        verify(postValidator).validatePost(post, false);
+        verify(postValidator).validatePost(post, "user123", false);
         verify(postRepository).save(post);
     }
 
@@ -84,12 +84,12 @@ class PostServiceTest {
         post.setContent("Updated Content");
 
         //Act
-        Post updatedPost = postService.updatePost(post);
+        Post updatedPost = postService.updatePost(post, "user123");
 
         //Assert
         assertEquals("Updated Title", updatedPost.getTitle());
         assertEquals("Updated Content", updatedPost.getContent());
-        verify(postValidator).validatePost(post, true);
+        verify(postValidator).validatePost(post, "user123", true);
         verify(postRepository).save(post);
     }
 
@@ -99,7 +99,7 @@ class PostServiceTest {
         when(postRepository.findById(post.getId())).thenReturn(null);
 
         //Act and Assert
-        assertThrows(ResourceNotFoundException.class, () -> postService.updatePost(post));
+        assertThrows(ResourceNotFoundException.class, () -> postService.updatePost(post, "user123"));
     }
 
     @Test
@@ -108,7 +108,7 @@ class PostServiceTest {
         when(postRepository.findById(post.getId())).thenReturn(null);
 
         //Act and Assert
-        assertThrows(ResourceNotFoundException.class, () -> postService.deletePost(post.getId()));
+        assertThrows(ResourceNotFoundException.class, () -> postService.deletePost(post.getId(), "user123"));
     }
 
     @Test
@@ -117,7 +117,7 @@ class PostServiceTest {
         when(postRepository.findById(post.getId())).thenReturn(post);
 
         //Act
-        Post deletedPost = postService.deletePost(post.getId());
+        Post deletedPost = postService.deletePost(post.getId(), "user123");
 
         //Assert
         assertEquals(post, deletedPost);
